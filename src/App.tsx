@@ -648,7 +648,7 @@ function App() {
                         padding: '10px 20px'
                       }}
                     >
-                      <span className="relative z-10">Join now</span>
+                      <span className="relative z-10">Connect now</span>
                     </motion.button>
                   </motion.div>
                 )}
