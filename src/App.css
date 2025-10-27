@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* Three.js Canvas styling */
+canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Button animations */
+@keyframes button-disappear {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.animate-button-disappear {
+  animation: button-disappear 2s ease-out forwards;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Ensure Montserrat font is applied */
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Bitcount Grid Single font class */
+.font-bitcount {
+  font-family: 'Bitcount Grid Single', monospace;
+}
+
+/* Remove default button styles */
+button {
+  border: none;
+  outline: none;
+}
+
+/* Subtle glow effect */
+.glow {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
