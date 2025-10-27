@@ -546,7 +546,7 @@ function App() {
                 transition={{ duration: 1, delay: 2.2 }}
                 className="text-sm md:text-base text-white font-medium mb-4"
               >
-                Please connect by clicking on a star and as our numbers increase, the energy of our community grows to make the world a better place.
+                Please connect by clicking on the button below and as our numbers increase, the energy of our community grows to make the world a better place.
               </motion.p>
               <div className="flex flex-col items-center justify-center space-y-4">
                 <span className="text-yellow-400 font-semibold text-xs md:text-sm">Join Our Global Community</span>
