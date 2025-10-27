@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, memo, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useTexture, Text } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import './App.css'
@@ -128,7 +128,7 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
 }
 
 // Ultra-Realistic Star Field Component - Using THREE.Points for Performance
-function StarField({ clickedStars, starCount }: { clickedStars: Array<{id: number, x: number, y: number}>, starCount: number }) {
+function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, y: number}>, starCount: number }) {
   const pointsRef = useRef<THREE.Points>(null)
   const rotationRef = useRef<number>(0)
   
@@ -279,51 +279,11 @@ function StarField({ clickedStars, starCount }: { clickedStars: Array<{id: numbe
   )
 }
 
-// Text Component for 3D Scene
-function Text3D({ 
-  text, 
-  position, 
-  fontSize = 0.1, 
-  color = 'white',
-  visible = true 
-}: { 
-  text: string, 
-  position: [number, number, number], 
-  fontSize?: number,
-  color?: string,
-  visible?: boolean
-}) {
-  const textRef = useRef<THREE.Group>(null)
-  
-  useFrame((state) => {
-    if (textRef.current && visible) {
-      textRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.5) * 0.01
-    }
-  })
-
-  return (
-    <group ref={textRef} position={position} visible={visible}>
-      <Text
-        fontSize={fontSize}
-        color={color}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {text}
-      </Text>
-    </group>
-  )
-}
-
 // Main Scene Component - Memoized to prevent unnecessary re-renders
 const Scene = memo(({ 
   clickedStars, 
   onAnimationComplete,
-  showUI,
-  hasClicked,
   totalClicks,
-  isAnimating,
-  onButtonClick
 }: { 
   clickedStars: Array<{id: number, x: number, y: number}>,
   onAnimationComplete: () => void,
