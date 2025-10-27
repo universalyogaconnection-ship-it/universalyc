@@ -537,7 +537,7 @@ function App() {
                 transition={{ duration: 0.8, delay: 2.0 }}
                 className="text-xs md:text-sm font-medium text-white"
               >
-                We aim to be a global source of <span className="text-yellow-300 font-semibold">Peace</span> and <span className="text-green-300 font-semibold">Positivity</span>.
+                We aim to be a global source of <span className="text-yellow-300 font-semibold">Peace</span>, <span style={{ color: '#F3CA17' }}>Love</span> and <span className="text-green-300 font-semibold">Positivity</span>.
               </motion.p>
               
               <motion.p
