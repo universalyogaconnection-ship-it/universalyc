@@ -467,6 +467,23 @@ function App() {
         />
       </Canvas>
 
+      {/* Logo - Centered Above First Line */}
+      {showUI && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 z-20"
+          style={{ top: 'calc(50% - 280px)' }}
+        >
+          <img 
+            src={logo} 
+            alt="Universal Yoga Connection Logo" 
+            className="h-16 md:h-24 w-auto mx-auto"
+          />
+        </motion.div>
+      )}
+
       {/* Creator's Message - Beautiful Overlay */}
       {showUI && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none -mt-16">
@@ -679,8 +696,8 @@ function App() {
       {buttonClickAnimation === 'star-glow' && newStarPosition && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+          animate={{ scale: [0, 3, 1.2, 1], opacity: [0, 1, 0.8, 0] }}
+          transition={{ duration: 2, ease: "easeOut" }}
           className="absolute z-30"
           style={{
             left: `${newStarPosition.x}%`,
@@ -689,68 +706,53 @@ function App() {
             pointerEvents: 'none'
           }}
         >
-          {/* Glowing Star Core */}
+          {/* Glowing Star Core - Bigger initial size */}
           <motion.div
             animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute inset-0"
             style={{
-              width: '20px',
-              height: '20px',
+              width: '40px',
+              height: '40px',
               background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
-              filter: 'blur(4px)',
+              filter: 'blur(6px)',
               borderRadius: '50%'
             }}
           />
           
-          {/* Outer Glow */}
+          {/* Outer Glow - Bigger initial size */}
           <motion.div
             animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.7, 0.4] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
             className="absolute inset-0"
             style={{
-              width: '60px',
-              height: '60px',
+              width: '120px',
+              height: '120px',
               background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-              filter: 'blur(8px)',
+              filter: 'blur(12px)',
               borderRadius: '50%',
-              margin: '-30px'
+              margin: '-60px'
             }}
           />
           
-          {/* Pulse Rings */}
+          {/* Pulse Rings - Bigger initial size */}
           <motion.div
             initial={{ scale: 0, opacity: 0.8 }}
-            animate={{ scale: 3, opacity: 0 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "easeOut" }}
+            animate={{ scale: 4, opacity: 0 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
             className="absolute inset-0"
             style={{
-              width: '30px',
-              height: '30px',
-              border: '2px solid rgba(255,255,255,0.6)',
+              width: '50px',
+              height: '50px',
+              border: '3px solid rgba(255,255,255,0.8)',
               borderRadius: '50%',
-              margin: '-15px',
-              filter: 'blur(2px)'
+              margin: '-25px',
+              filter: 'blur(3px)'
             }}
           />
         </motion.div>
       )}
 
-      {/* Logo - Top Left */}
-      {showUI && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          className="absolute top-6 left-6 z-20"
-        >
-          <img 
-            src={logo} 
-            alt="Universal Yoga Connection Logo" 
-            className="h-10 md:h-20 w-auto"
-          />
-        </motion.div>
-      )}
 
       {/* Counter - Top Right with Animation */}
       <div className="absolute top-6 right-6 z-20">
@@ -779,7 +781,7 @@ function App() {
             </motion.div>
           </div>
           <div className="text-xs text-gray-500 font-montserrat">
-            {'United'}
+            {'Connected'}
           </div>
         </div>
       </div>
