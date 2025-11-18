@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.4.0",
+    "@supabase/supabase-js": "^2.90.1",
     "@tailwindcss/vite": "^4.1.15",
     "@types/three": "^0.180.0",
     "framer-motion": "^12.23.24",

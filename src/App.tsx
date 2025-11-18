@@ -5,6 +5,9 @@ import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import './App.css'
 import logo from './assets/logo.png'
+import { supabase, type CounterRecord, type ClickEvent } from './lib/supabase'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+import { getBrowserFingerprint } from './lib/fingerprint'
 
 // TSL-based Earth Component (exact implementation from original)
 function Earth({ position, onAnimationComplete }: { position: [number, number, number], onAnimationComplete: () => void }) {
@@ -13,7 +16,7 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
   const { camera } = useThree()
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'moving' | 'complete'>('initial')
   const animationStartTime = useRef<number>(0)
-  
+
   // High-quality Earth textures (exact from original)
   const dayTexture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_day_4096.jpg')
   const nightTexture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_night_4096.jpg')
@@ -45,21 +48,21 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
       const duration = 6000 // 6 seconds in milliseconds
       const elapsed = performance.now() - animationStartTime.current
       const progress = Math.min(elapsed / duration, 1)
-      
+
       // Ultra-smooth easing function - ease-in-out cubic
-      const easedProgress = progress < 0.5 
-        ? 4 * progress * progress * progress 
+      const easedProgress = progress < 0.5
+        ? 4 * progress * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 3) / 2
-      
+
       if (progress < 1) {
         // Smoother interpolation with better easing
         camera.position.x = THREE.MathUtils.lerp(0, 0, easedProgress)
         camera.position.y = THREE.MathUtils.lerp(5, 1.5, easedProgress)
         camera.position.z = THREE.MathUtils.lerp(8, 2.5, easedProgress)
-        
+
         // Direct lookAt for smoother camera movement
         camera.lookAt(0, 0, 0)
-        
+
         // Force camera matrix update for smoother rendering
         camera.updateMatrixWorld()
       } else if (animationPhase === 'moving') {
@@ -82,21 +85,21 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
   return (
     <>
       {/* Enhanced Lighting System */}
-      <directionalLight 
+      <directionalLight
         ref={sunLight}
-        color="#ffffff" 
-        intensity={3} 
-        position={[0, 0, 3]} 
+        color="#ffffff"
+        intensity={3}
+        position={[0, 0, 3]}
       />
-      
+
       {/* Additional lights for brightness */}
       <ambientLight intensity={0.4} />
       <pointLight position={[5, 5, 5]} intensity={1.5} color="#ffffff" />
       <pointLight position={[-5, -5, -5]} intensity={1} color="#ffffff" />
       <pointLight position={[0, 0, 5]} intensity={1.5} color="#ffffff" />
-      
-      <group 
-        ref={earthRef} 
+
+      <group
+        ref={earthRef}
         position={position}
       >
         {/* Main Earth Sphere - Smaller Scale */}
@@ -115,9 +118,9 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
         {/* Atmosphere - Smaller Scale */}
         <mesh ref={atmosphereRef}>
           <sphereGeometry args={[0.52, 64, 64]} />
-          <meshBasicMaterial 
+          <meshBasicMaterial
             color={0x6db8ff}
-            side={THREE.BackSide} 
+            side={THREE.BackSide}
             transparent
             opacity={0.25}
           />
@@ -128,21 +131,21 @@ function Earth({ position, onAnimationComplete }: { position: [number, number, n
 }
 
 // Ultra-Realistic Star Field Component - Using THREE.Points for Performance
-function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, y: number}>, starCount: number }) {
+function StarField({ starCount }: { clickedStars: Array<{ id: number, x: number, y: number }>, starCount: number }) {
   const pointsRef = useRef<THREE.Points>(null)
   const rotationRef = useRef<number>(0)
-  
+
   // Progressive loading to prevent freezing
   const [visibleStarCount, setVisibleStarCount] = useState(0)
   const maxRenderPerFrame = 1000 // Load this many stars per frame
-  
+
   useFrame((state) => {
     // Progressive loading
     if (visibleStarCount < starCount) {
       const newCount = Math.min(visibleStarCount + maxRenderPerFrame, starCount)
       setVisibleStarCount(newCount)
     }
-    
+
     // Smooth rotation
     if (pointsRef.current) {
       const currentTime = state.clock.elapsedTime
@@ -156,21 +159,21 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
     const positions = new Float32Array(count * 3)
     const colors = new Float32Array(count * 3)
     const sizes = new Float32Array(count)
-    
+
     for (let i = 0; i < count; i++) {
       // Spherical distribution for realistic starfield
       const radius = 100 + Math.random() * 1500
       const phi = Math.acos(1 - 2 * Math.random())
       const theta = 2 * Math.PI * Math.random()
-      
+
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta)
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta)
       positions[i * 3 + 2] = radius * Math.cos(phi)
-      
+
       // Realistic star colors based on temperature
       const temperature = 2000 + Math.random() * 8000
       let r, g, b
-      
+
       if (temperature > 8000) {
         // O-type stars - Blue-white
         r = 0.6 + Math.random() * 0.2; g = 0.7 + Math.random() * 0.2; b = 0.9 + Math.random() * 0.1
@@ -193,11 +196,11 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
         // M-type stars - Red
         r = 1; g = 0.3 + Math.random() * 0.3; b = 0.2 + Math.random() * 0.2
       }
-      
+
       colors[i * 3] = r
       colors[i * 3 + 1] = g
       colors[i * 3 + 2] = b
-      
+
       // Varying sizes for realism
       const sizeRand = Math.random()
       if (sizeRand < 0.7) {
@@ -210,7 +213,7 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
         sizes[i] = 3.0 + Math.random() * 2 // Bright stars (rare)
       }
     }
-    
+
     return { positions, colors, sizes }
   }
 
@@ -218,7 +221,7 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
 
   // Create and manage BufferGeometry
   const geometry = useRef<THREE.BufferGeometry | null>(null)
-  
+
   useEffect(() => {
     if (!geometry.current) {
       geometry.current = new THREE.BufferGeometry()
@@ -234,7 +237,7 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
   useEffect(() => {
     if (geometry.current && visibleStarCount > 0) {
       const effectiveCount = Math.min(visibleStarCount, starCount)
-      
+
       // Check if buffers need resizing
       const currentPositionLength = geometry.current.attributes.position?.count || 0
       if (currentPositionLength !== effectiveCount) {
@@ -246,11 +249,11 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
         const posAttr = geometry.current.attributes.position as THREE.BufferAttribute
         const colorAttr = geometry.current.attributes.color as THREE.BufferAttribute
         const sizeAttr = geometry.current.attributes.size as THREE.BufferAttribute
-        
+
         posAttr.array.set(starData.positions.slice(0, effectiveCount * 3))
         colorAttr.array.set(starData.colors.slice(0, effectiveCount * 3))
         sizeAttr.array.set(starData.sizes.slice(0, effectiveCount))
-        
+
         posAttr.needsUpdate = true
         colorAttr.needsUpdate = true
         sizeAttr.needsUpdate = true
@@ -267,7 +270,7 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
 
   return (
     <points ref={pointsRef} geometry={geometry.current}>
-      <pointsMaterial 
+      <pointsMaterial
         size={0.02}
         vertexColors={true}
         transparent
@@ -280,12 +283,12 @@ function StarField({ starCount }: { clickedStars: Array<{id: number, x: number, 
 }
 
 // Main Scene Component - Memoized to prevent unnecessary re-renders
-const Scene = memo(({ 
-  clickedStars, 
+const Scene = memo(({
+  clickedStars,
   onAnimationComplete,
   totalClicks,
-}: { 
-  clickedStars: Array<{id: number, x: number, y: number}>,
+}: {
+  clickedStars: Array<{ id: number, x: number, y: number }>,
   onAnimationComplete: () => void,
   showUI: boolean,
   hasClicked: boolean,
@@ -296,9 +299,9 @@ const Scene = memo(({
   return (
     <>
       <StarField clickedStars={clickedStars} starCount={totalClicks} />
-      
+
       <Earth position={[0, -0.8, 0]} onAnimationComplete={onAnimationComplete} />
-      
+
     </>
   )
 })
@@ -307,14 +310,17 @@ function App() {
   const [hasClicked, setHasClicked] = useState(false)
   const [totalClicks, setTotalClicks] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
-  const [clickedStars, setClickedStars] = useState<Array<{id: number, x: number, y: number}>>([])
+  const [clickedStars, setClickedStars] = useState<Array<{ id: number, x: number, y: number }>>([])
   const [showUI, setShowUI] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [buttonClickAnimation, setButtonClickAnimation] = useState<'idle' | 'shrinking' | 'light-streak' | 'counting' | 'star-glow' | 'complete'>('idle')
   const [previousCount, setPreviousCount] = useState(0)
-  const [newStarPosition, setNewStarPosition] = useState<{x: number, y: number} | null>(null)
+  const [newStarPosition, setNewStarPosition] = useState<{ x: number, y: number } | null>(null)
   const counterRef = useRef<HTMLDivElement>(null)
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const browserFingerprint = useRef<string>('')
+  const isCurrentUserClick = useRef(false)
 
   useEffect(() => {
     // Simulate loading progress
@@ -335,76 +341,254 @@ function App() {
     return () => clearInterval(loadingInterval)
   }, [])
 
+  // Initialize counter from Supabase
   useEffect(() => {
-    // Load from localStorage
-    const clicked = localStorage.getItem('yoga-connection-clicked')
-    const clicks = localStorage.getItem('yoga-connection-total')
-    const stars = localStorage.getItem('yoga-connection-stars')
-    
-    if (clicked === 'true') {
-      setHasClicked(true)
+    const initializeCounter = async () => {
+      try {
+        // Fetch current counter value
+        const { data: counterData, error: counterError } = await supabase
+          .from('counter')
+          .select('count')
+          .eq('id', 1)
+          .single()
+
+        if (counterError) {
+          console.error('Error fetching counter:', counterError)
+          return
+        }
+
+        if (counterData) {
+          setTotalClicks(counterData.count)
+        }
+
+        // Generate or retrieve browser fingerprint
+        browserFingerprint.current = getBrowserFingerprint()
+
+        // Check if this browser has clicked before (from database)
+        const { data: userClickData, error: userClickError } = await supabase
+          .from('user_clicks')
+          .select('*')
+          .eq('browser_fingerprint', browserFingerprint.current)
+          .single()
+
+        if (userClickError && userClickError.code !== 'PGRST116') {
+          console.error('Error checking user click:', userClickError)
+        }
+
+        if (userClickData) {
+          setHasClicked(true)
+        }
+
+        // Fetch recent click events to populate stars
+        const { data: clickEvents, error: clickError } = await supabase
+          .from('click_events')
+          .select('id, x, y')
+          .order('created_at', { ascending: false })
+          .limit(100) // Load last 100 clicks
+
+        if (clickError) {
+          console.error('Error fetching click events:', clickError)
+          return
+        }
+
+        if (clickEvents) {
+          setClickedStars(clickEvents.map(event => ({
+            id: event.id,
+            x: Number(event.x),
+            y: Number(event.y)
+          })))
+        }
+      } catch (error) {
+        console.error('Error initializing counter:', error)
+      }
     }
-    if (clicks) {
-      setTotalClicks(parseInt(clicks))
-    }
-    if (stars) {
-      setClickedStars(JSON.parse(stars))
-    }
+
+    initializeCounter()
   }, [])
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    // Create a channel for realtime updates
+    const channel = supabase
+      .channel('counter-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'counter'
+        },
+        (payload) => {
+          const newData = payload.new as CounterRecord
+
+          // Always update counter from Supabase (single source of truth)
+          setPreviousCount(totalClicks)
+          setTotalClicks(newData.count)
+
+          // Only animate if this is NOT the current user's click
+          if (!isCurrentUserClick.current) {
+            setButtonClickAnimation('counting')
+            setTimeout(() => {
+              setButtonClickAnimation('idle')
+            }, 800)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'click_events'
+        },
+        (payload) => {
+          const newClick = payload.new as ClickEvent
+
+          // Always add the star (single source of truth from DB)
+          const newStar = {
+            id: newClick.id,
+            x: Number(newClick.x),
+            y: Number(newClick.y)
+          }
+
+          setClickedStars(prev => [...prev, newStar])
+          setNewStarPosition({ x: newStar.x, y: newStar.y })
+
+          // Show star glow animation for everyone
+          setButtonClickAnimation('star-glow')
+          setTimeout(() => {
+            setButtonClickAnimation('idle')
+            setNewStarPosition(null)
+          }, 2000)
+        }
+      )
+      .subscribe()
+
+    channelRef.current = channel
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+      }
+    }
+  }, [totalClicks])
 
   const handleAnimationComplete = () => {
     setShowUI(true)
   }
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (hasClicked || buttonClickAnimation !== 'idle') return
-    
+
     // Start button shrinking animation
     setButtonClickAnimation('shrinking')
     setPreviousCount(totalClicks)
-    
-    // Phase 1: Button shrinks
-    setTimeout(() => {
-      setButtonClickAnimation('light-streak')
-      
-      // Phase 2: Light streak travels to counter
-      setTimeout(() => {
-        setButtonClickAnimation('counting')
-        
-        // Phase 3: Update counter with animation
-        const newTotal = totalClicks + 1
-        setTotalClicks(newTotal)
-        
-        // Create new star at random position
-        const newStar = {
-          id: Date.now(),
-          x: Math.random() * 100,
-          y: Math.random() * 100
-        }
-        setHasClicked(true)
-        setClickedStars(prev => [...prev, newStar])
-        setNewStarPosition({ x: newStar.x, y: newStar.y })
-        
-        // Save to localStorage
-        localStorage.setItem('yoga-connection-clicked', 'true')
-        localStorage.setItem('yoga-connection-total', newTotal.toString())
-        localStorage.setItem('yoga-connection-stars', JSON.stringify([...clickedStars, newStar]))
-        
-        // Phase 4: Star glow
-        setTimeout(() => {
-          setButtonClickAnimation('star-glow')
-          
-          // Phase 5: Complete - clear star position after glow
-          setTimeout(() => {
-            setButtonClickAnimation('complete')
+
+    // Generate random position for new star
+    const newStar = {
+      x: Math.random() * 100,
+      y: Math.random() * 100
+    }
+
+    try {
+      // Phase 1: Button shrinks
+      setTimeout(async () => {
+        setButtonClickAnimation('light-streak')
+
+        // Phase 2: Light streak travels to counter
+        setTimeout(async () => {
+          try {
+            // Mark this as current user's click to prevent double animation
+            isCurrentUserClick.current = true
+
+            // Check if browser has already clicked (double-check from DB)
+            const { data: existingClick } = await supabase
+              .from('user_clicks')
+              .select('*')
+              .eq('browser_fingerprint', browserFingerprint.current)
+              .single()
+
+            if (existingClick) {
+              console.log('Browser has already clicked')
+              setButtonClickAnimation('idle')
+              setHasClicked(true)
+              isCurrentUserClick.current = false
+              return
+            }
+
+            // Record this browser's click in database
+            const { error: userClickError } = await supabase
+              .from('user_clicks')
+              .insert({
+                browser_fingerprint: browserFingerprint.current,
+                user_agent: navigator.userAgent
+              })
+
+            if (userClickError) {
+              console.error('Error recording user click:', userClickError)
+              setButtonClickAnimation('idle')
+              isCurrentUserClick.current = false
+              return
+            }
+
+            // Update counter in Supabase (atomic increment)
+            const { data: currentCounter } = await supabase
+              .from('counter')
+              .select('count')
+              .eq('id', 1)
+              .single()
+
+            if (currentCounter) {
+              await supabase
+                .from('counter')
+                .update({ count: currentCounter.count + 1 })
+                .eq('id', 1)
+            }
+
+            // Insert click event
+            const { error: clickError } = await supabase
+              .from('click_events')
+              .insert({
+                x: newStar.x.toFixed(2),
+                y: newStar.y.toFixed(2)
+              })
+
+            if (clickError) {
+              console.error('Error inserting click event:', clickError)
+            }
+
+            // Phase 3: Just update UI state, let realtime handle counter/stars
+            setButtonClickAnimation('counting')
+            setHasClicked(true)
+
+            // Wait for realtime to update counter and stars
+            // The realtime subscription will handle the actual updates
+
+            // Phase 4: Star glow (will be triggered by realtime)
             setTimeout(() => {
-              setIsAnimating(false)
-              setNewStarPosition(null)
-            }, 500)
-          }, 1500)
-        }, 800)
-      }, 1000)
-    }, 500)
+              // Phase 5: Complete
+              setTimeout(() => {
+                setButtonClickAnimation('complete')
+                setTimeout(() => {
+                  setIsAnimating(false)
+                  setButtonClickAnimation('idle')
+                  // Reset flag after animations complete
+                  isCurrentUserClick.current = false
+                }, 500)
+              }, 1500)
+            }, 800)
+          } catch (error) {
+            console.error('Error updating counter:', error)
+            setButtonClickAnimation('idle')
+            isCurrentUserClick.current = false
+          }
+        }, 1000)
+      }, 500)
+    } catch (error) {
+      console.error('Error in handleClick:', error)
+      setButtonClickAnimation('idle')
+      isCurrentUserClick.current = false
+    }
   }
 
   return (
@@ -432,7 +616,7 @@ function App() {
             >
               Loading
             </motion.h1>
-            
+
             {/* Progress Bar Container */}
             <div className="w-80 md:w-96 h-2 bg-gray-800 rounded-full overflow-hidden">
               <motion.div
@@ -450,14 +634,14 @@ function App() {
       <Canvas
         camera={{ position: [0, 5, 8], fov: 25 }}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-        gl={{ 
+        gl={{
           antialias: true,
           alpha: false,
           powerPreference: "high-performance"
         }}
       >
-        <Scene 
-          clickedStars={clickedStars} 
+        <Scene
+          clickedStars={clickedStars}
           onAnimationComplete={handleAnimationComplete}
           showUI={showUI}
           hasClicked={hasClicked}
@@ -476,9 +660,9 @@ function App() {
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 z-20"
           style={{ top: 'calc(50% - 280px)' }}
         >
-          <img 
-            src={logo} 
-            alt="Universal Yoga Connection Logo" 
+          <img
+            src={logo}
+            alt="Universal Yoga Connection Logo"
             className="h-16 md:h-24 w-auto mx-auto"
           />
         </motion.div>
@@ -502,7 +686,7 @@ function App() {
               >
                 The Universal Symbol of Yoga and Connection exemplifies our intention to connect in yoga with each other and the world.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -511,7 +695,7 @@ function App() {
               >
                 This site is an instrument for uniting yoga practitioners and like minded individuals from around the world.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -520,7 +704,7 @@ function App() {
               >
                 The symbol stands for <span style={{ color: '#D9263B' }}>Yoga</span>, <span style={{ color: '#FF9222' }}>Peace</span>, <span style={{ color: '#F3CA17' }}>Love</span>, <span style={{ color: '#1DC179' }}>Compassion</span>, <span style={{ color: '#36D1D8' }}>Forgiveness</span>, <span style={{ color: '#1C3CD5' }}>Acceptance</span>, <span style={{ color: '#7912D6' }}>Equality</span> and all that is good.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -529,7 +713,7 @@ function App() {
               >
                 The Universal symbol of yoga is a <span className="text-yellow-400 font-semibold">Y</span> made from 7 circles. This is the basic template, feel free to adapt this template (layout, colours, wide lines, thin lines) however you like.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -538,7 +722,7 @@ function App() {
               >
                 Help display the symbol in the world. Make a poster, make a flag, put the symbol on a T shirt…do what ever you want to promote the symbol and make others aware of this web site and our cause.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -547,7 +731,7 @@ function App() {
               >
                 When we make the sign of peace ✌️, we make a positive connection with others in the real world.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -556,7 +740,7 @@ function App() {
               >
                 We aim to be a global source of <span style={{ color: '#FF9222' }}>Peace</span>, <span style={{ color: '#F3CA17' }}>Love</span> and <span className="text-green-300 font-semibold">Positivity</span>.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -567,7 +751,7 @@ function App() {
               </motion.p>
               <div className="flex flex-col items-center justify-center space-y-4">
                 <span className="text-yellow-400 font-semibold text-xs md:text-sm">Join Our Global Community</span>
-                
+
                 {/* Join Now Button - Vercel-style with Ethereal Glow */}
                 {!hasClicked && (
                   <motion.div
@@ -600,7 +784,7 @@ function App() {
                         top: '-40%'
                       }}
                     />
-                    
+
                     {/* Rotating Glow Orb */}
                     <motion.div
                       animate={{
@@ -621,7 +805,7 @@ function App() {
                         top: '-25%'
                       }}
                     />
-                    
+
                     {/* Additional Soft Glow Layer */}
                     <motion.div
                       animate={{
@@ -644,10 +828,10 @@ function App() {
                         top: '-60%'
                       }}
                     />
-                    
+
                     {/* Vercel-style Button with Better Styling */}
                     <motion.button
-                      whileHover={{ 
+                      whileHover={{
                         scale: hasClicked ? 1 : 1.05,
                         y: hasClicked ? 0 : -2
                       }}
@@ -719,7 +903,7 @@ function App() {
               borderRadius: '50%'
             }}
           />
-          
+
           {/* Outer Glow - Bigger initial size */}
           <motion.div
             animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.7, 0.4] }}
@@ -734,7 +918,7 @@ function App() {
               margin: '-60px'
             }}
           />
-          
+
           {/* Pulse Rings - Bigger initial size */}
           <motion.div
             initial={{ scale: 0, opacity: 0.8 }}
@@ -769,7 +953,7 @@ function App() {
                 {previousCount.toLocaleString()}
               </motion.div>
             )}
-            
+
             {/* Current number */}
             <motion.div
               key={`count-${totalClicks}`}
