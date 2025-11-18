@@ -201,16 +201,16 @@ function StarField({ starCount }: { clickedStars: Array<{ id: number, x: number,
       colors[i * 3 + 1] = g
       colors[i * 3 + 2] = b
 
-      // Varying sizes for realism
+      // Varying sizes for visibility (much larger!)
       const sizeRand = Math.random()
-      if (sizeRand < 0.7) {
-        sizes[i] = 0.5 // Tiny stars (most common)
-      } else if (sizeRand < 0.9) {
-        sizes[i] = 1.0 // Small stars
-      } else if (sizeRand < 0.98) {
-        sizes[i] = 2.0 // Medium stars
+      if (sizeRand < 0.5) {
+        sizes[i] = 2.0 // Small stars (more visible)
+      } else if (sizeRand < 0.8) {
+        sizes[i] = 3.5 // Medium stars
+      } else if (sizeRand < 0.95) {
+        sizes[i] = 5.0 // Large stars
       } else {
-        sizes[i] = 3.0 + Math.random() * 2 // Bright stars (rare)
+        sizes[i] = 7.0 + Math.random() * 3 // Very bright stars
       }
     }
 
@@ -271,12 +271,13 @@ function StarField({ starCount }: { clickedStars: Array<{ id: number, x: number,
   return (
     <points ref={pointsRef} geometry={geometry.current}>
       <pointsMaterial
-        size={0.02}
+        size={0.08}
         vertexColors={true}
         transparent
-        opacity={0.8}
+        opacity={0.95}
         blending={THREE.AdditiveBlending}
         sizeAttenuation={true}
+        depthWrite={false}
       />
     </points>
   )
@@ -859,6 +860,66 @@ function App() {
         </div>
       )}
 
+      {/* 2D Star Overlay - Shows all clicked stars on screen */}
+      {clickedStars.map((star) => (
+        <motion.div
+          key={star.id}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="absolute z-20 pointer-events-none"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          {/* Star Core */}
+          <motion.div
+            animate={{
+              scale: [1, 1.15, 1],
+              opacity: [0.85, 1, 0.85]
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="relative"
+            style={{
+              width: '2px',
+              height: '2px',
+              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 40%, rgba(255,255,255,0) 100%)',
+              borderRadius: '50%',
+              boxShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.4)'
+            }}
+          />
+
+          {/* Star Glow */}
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.35, 0.45, 0.35]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+            className="absolute inset-0"
+            style={{
+              width: '8px',
+              height: '8px',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)',
+              borderRadius: '50%',
+              margin: '-4px',
+              filter: 'blur(4px)'
+            }}
+          />
+        </motion.div>
+      ))}
+
       {/* Light Streak Animation from Button to Counter */}
       {buttonClickAnimation === 'light-streak' && (
         <motion.div
@@ -890,48 +951,48 @@ function App() {
             pointerEvents: 'none'
           }}
         >
-          {/* Glowing Star Core - Bigger initial size */}
+          {/* Glowing Star Core - Much bigger and brighter */}
           <motion.div
-            animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.9, 1, 0.9] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute inset-0"
             style={{
-              width: '40px',
-              height: '40px',
-              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
-              filter: 'blur(6px)',
+              width: '80px',
+              height: '80px',
+              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 50%, transparent 100%)',
+              filter: 'blur(8px)',
               borderRadius: '50%'
             }}
           />
 
-          {/* Outer Glow - Bigger initial size */}
+          {/* Outer Glow - Much bigger */}
           <motion.div
-            animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.7, 0.4] }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0.8, 0.5] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
             className="absolute inset-0"
             style={{
-              width: '120px',
-              height: '120px',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-              filter: 'blur(12px)',
+              width: '200px',
+              height: '200px',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+              filter: 'blur(15px)',
               borderRadius: '50%',
-              margin: '-60px'
+              margin: '-100px'
             }}
           />
 
-          {/* Pulse Rings - Bigger initial size */}
+          {/* Pulse Rings - Bigger */}
           <motion.div
-            initial={{ scale: 0, opacity: 0.8 }}
-            animate={{ scale: 4, opacity: 0 }}
+            initial={{ scale: 0, opacity: 0.9 }}
+            animate={{ scale: 5, opacity: 0 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
             className="absolute inset-0"
             style={{
-              width: '50px',
-              height: '50px',
-              border: '3px solid rgba(255,255,255,0.8)',
+              width: '80px',
+              height: '80px',
+              border: '4px solid rgba(255,255,255,0.9)',
               borderRadius: '50%',
-              margin: '-25px',
-              filter: 'blur(3px)'
+              margin: '-40px',
+              filter: 'blur(4px)'
             }}
           />
         </motion.div>
