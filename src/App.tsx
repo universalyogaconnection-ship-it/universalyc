@@ -703,8 +703,7 @@ function App() {
                 transition={{ duration: 0.8, delay: 1.2 }}
                 className="text-xs md:text-sm font-medium text-white"
               >
-                The symbol stands for <span style={{ color: '#D9263B' }}>Yoga</span>, <span style={{ color: '#FF9222' }}>Peace</span>, <span style={{ color: '#F3CA17' }}>Love</span>, <span style={{ color: '#1DC179' }}>Compassion</span>, <span style={{ color: '#36D1D8' }}>Forgiveness</span>, <span style={{ color: '#1C3CD5' }}>Acceptance</span>, <span style={{ color: '#7912D6' }}>Equality</span> and all that is good.
-              </motion.p>
+                The symbol stands for Yoga, Peace, Love, Compassion,Forgiveness, Acceptance, Equality and all that is good.</motion.p>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
