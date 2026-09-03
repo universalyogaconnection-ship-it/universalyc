@@ -711,7 +711,8 @@ function App() {
                 transition={{ duration: 0.8, delay: 1.4 }}
                 className="text-xs md:text-sm font-light"
               >
-                The Universal symbol of yoga is a <span className="text-yellow-400 font-semibold">Y</span> made from 7 circles. This is the basic template, feel free to adapt this template (layout, colours, wide lines, thin lines) however you like.
+                The Universal symbol of yoga is a <span className="text-yellow-400 font-semibold">Y</span> made from 7 circles.
+                This is the basic template, feel free to adapt this template (layout, colours, wide lines, thin lines) however you like.
               </motion.p>
 
               <motion.p
